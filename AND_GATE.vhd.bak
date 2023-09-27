@@ -1,0 +1,24 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity AND_GATE IS 
+generic (num : positive := 31);
+port (A: in std_logic_vector(num downto 0);
+  B : in std_logic_vector(num downto 0);
+  res: out std_logic_vector(num downto 0)
+);
+end entity;
+
+architecture behavior of AND_GATE is
+begin
+ process(A, B)
+ begin
+  for i in 0 to num loop
+   if A(i) = '1' and  B(i) = '1' then
+    res(i) <= '1';
+   else
+    res(i) <='0';
+   end if;
+  end loop;
+ end process;
+end architecture behavior;

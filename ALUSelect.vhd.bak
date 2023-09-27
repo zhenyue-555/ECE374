@@ -1,0 +1,22 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use ieee.NUMERIC_STD.all;
+
+entity ALU_SEl is
+
+port (
+	ADD_i : IN STD_LOGIC;
+	SUB_i : IN STD_LOGIC;
+	MUL_i : IN STD_LOGIC;
+	DIV_i : IN STD_LOGIC;
+	SHR_i : IN STD_LOGIC;
+	SHL_i : IN STD_LOGIC;
+	ROR_i : IN STD_LOGIC;
+	ROL_i : IN STD_LOGIC;
+	AND_i : IN STD_LOGIC;
+	OR_i : IN STD_LOGIC;
+	NEG_i : IN STD_LOGIC;
+	NOT_i : IN STD_LOGIC;
+
+);

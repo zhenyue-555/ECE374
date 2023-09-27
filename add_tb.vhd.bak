@@ -1,0 +1,225 @@
+ENTITY add_tb IS
+END ENTITY add_tb;
+
+-- Architecture of the testbench with the signal names
+ARCHITECTURE add_tb_arch OF add_tb IS 
+
+SIGNAL PCout_tb, Zlowout_tb, MDRout_tb, R2out_tb, R4out_tb: std_logic;
+SIGNAL MARin_tb, Zin_tb, PCin_tb, MDRin_tb, IRin_tb, Yin_tb: std_logic;
+SIGNAL IncPC_tb, Read_tb, ADD_tb, R5in_tb, R2in_tb, R4in_tb: std_logic;
+SIGNAL Clock_tb: std_logic;
+SIGNAL Clear_tb: std_logic;
+SIGNAL Mdatain_tb,BusData_tb : std_logic_vector (31 downto 0);
+
+TYPE State IS (default, Reg_load1a, Reg_load1b, Reg_load2a, Reg_load2b, Reg_load3a, Reg_load3b, T0, T1,
+T2, T3, T4, T5);
+
+SIGNAL Present_state: State := default;
+COMPONENT datapath
+	PORT (
+		R0out,R1out,R2out,R3out,R4out,R5out,R6out,R7out,R8out,R9out,R10out,R11out,R12out,R13out,R14out,R15out :  IN  STD_LOGIC;
+		R0in,R1in,R2in,R3in,R4in,R5in,R6in,R7in,R8in,R9in,R10in,R11in,R12in,R13in,R14in,R15in :  IN  STD_LOGIC;
+		clk :  IN  STD_LOGIC;
+		clear :  IN  STD_LOGIC;
+		HIout,LOout :  IN  STD_LOGIC;
+		Zlowout,Zhighout :  IN  STD_LOGIC;
+		MDRout :  IN  STD_LOGIC;
+		PCout :  IN  STD_LOGIC;
+		Cout :  IN  STD_LOGIC;
+		InPortout :  IN  STD_LOGIC;
+		HIin,LOin :  IN  STD_LOGIC;
+		Read :  IN  STD_LOGIC;
+		MDRin :  IN  STD_LOGIC;
+		InPortin :  IN  STD_LOGIC;
+		Yin :  IN  STD_LOGIC;
+		PCin :  IN  STD_LOGIC;
+		IncPC :  IN  STD_LOGIC;
+		IRin :  IN  STD_LOGIC;
+		MARin :  IN  STD_LOGIC;
+		OutPortin :  IN  STD_LOGIC;
+		ANDin :  IN  STD_LOGIC;
+		ORin :  IN  STD_LOGIC;
+		NOTin :  IN  STD_LOGIC;
+		NEGin :  IN  STD_LOGIC;
+		ADDin :  IN  STD_LOGIC;
+		SUBin :  IN  STD_LOGIC;
+		MULin :  IN  STD_LOGIC;
+		DIVin :  IN  STD_LOGIC;
+		SHRin :  IN  STD_LOGIC;
+		SHLin :  IN  STD_LOGIC;
+		RORin :  IN  STD_LOGIC;
+		ROLin :  IN  STD_LOGIC;
+		Zin :  IN  STD_LOGIC;
+		MDataIn,MDataOut :  IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
+		BusData :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0);
+		IRout :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0);
+		MARout :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0);
+		OutPortout :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0)
+		);
+	END COMPONENT datapath;
+
+BEGIN
+
+DUT : datapath
+	--port mapping: between the dut and the testbench signals
+	PORT MAP (
+		R0out => '0',
+		R1out => '0',
+		R2out => R2out_tb,
+		R3out => '0',
+		R4out => R4out_tb,
+		R5out => '0',
+		R6out => '0',
+		R7out => '0',
+		R8out => '0',
+		R9out => '0',
+		R10out => '0',
+		R11out => '0',
+		R12out => '0',
+		R13out => '0',
+		R14out => '0',
+		R15out => '0',
+		clk => Clock_tb,
+		clr => Clear_tb,
+		HIout => '0',
+		LOout => '0',
+		Zlowout => Zlowout_tb,
+		Zhighout =>  '0',
+		MDRout => MDRout_tb,
+		PCout => PCout_tb,
+		Cout => '0',
+		InPortout => '0',
+		R0in => '0',
+		R1in => '0',
+		R2in => R2in_tb,
+		R3in => '0',
+		R4in => R4in_tb,
+		R5in => R5in_tb,
+		R6in => '0',
+		R7in => '0',
+		R8in => '0',
+		R9in => '0',
+		R10in => '0',
+		R11in => '0',
+		R12in => '0',
+		R13in => '0',
+		R14in => '0',
+		R15in => '0',
+		HIin => '0',
+		LOin => '0',
+		Read => Read_tb,
+		MDRin => MDRin_tb,
+		InPortin => '0',
+		Yin => Yin_tb,
+		PCin => PCin_tb,
+		IncPC => IncPC_tb,
+		IRin => IRin_tb,
+		MARin => MARin_tb,
+		OutPortin => '0',
+		ANDin => '0',
+		ORin => '0',
+		NOTin => '0',
+		NEGin => '0',
+		ADDin => ADD_tb,
+		SUBin => '0',
+		MULin => '0',
+		DIVin => '0',
+		SHRin => '0',
+		SHLin => '0',
+		RORin => '0',
+		ROLin => '0',
+		Zin => Zin_tb,
+		MDataIn => Mdatain_tb,
+		BusData => BusData_tb
+	);
+	--add test logic here
+	Clock_process: PROCESS IS
+		BEGIN
+			Clock_tb <= '1', '0' after 10 ns;
+			wait for 20 ns;
+	END PROCESS Clock_process;
+
+	PROCESS (Clock_tb) IS 
+		BEGIN
+			IF (rising_edge (Clock_tb)) THEN 
+				CASE Present_state IS
+					WHEN Default =>
+						Present_state <= Reg_load1a;
+					WHEN Reg_load1a =>
+						Present_state <= Reg_load1b;
+					WHEN Reg_load1b =>
+						Present_state <= Reg_load2a;
+					WHEN Reg_load2a =>
+						Present_state <= Reg_load2b;
+					WHEN Reg_load2b =>
+						Present_state <= Reg_load3a;
+					WHEN Reg_load3a =>
+						Present_state <= Reg_load3b;
+					WHEN Reg_load3b =>
+						Present_state <= T0;
+					WHEN T0 =>
+						Present_state <= T1;
+					WHEN T1 =>
+						Present_state <= T2;
+					WHEN T2 =>
+						Present_state <= T3;
+					WHEN T3 =>
+						Present_state <= T4;
+					WHEN T4 =>
+						Present_state <= T5;
+					WHEN OTHERS =>
+				END CASE;
+			END IF;
+	END PROCESS;
+
+	PROCESS (Present_state) IS 
+		BEGIN
+			CASE Present_state IS 
+				WHEN Default =>
+					PCout_tb <= '0'; Zlowout_tb <= '0'; MDRout_tb <= '0'; 
+					R2out_tb <= '0'; R4out_tb <= '0'; MARin_tb <= '0';
+					PCin_tb <='0'; MDRin_tb <= '0'; IRin_tb <= '0'; Yin_tb <= '0'; Zin_tb <= '0';
+					IncPC_tb <= '0'; Read_tb <= '0'; ADD_tb <= '0';
+					R2in_tb <= '0'; R4in_tb <= '0'; R5in_tb <= '0'; Mdatain_tb <= x"00000000";
+					Clear_tb <= '0';
+				WHEN Reg_load1a =>
+					Mdatain_tb <= x"00000022";
+					Read_tb <= '1','1'after 10ns,'0'after 25ns;
+					MDRin_tb <= '1','1'after 10ns,'0'after 25ns;
+					Clear_tb <= '1';
+				WHEN Reg_load1b =>
+					MDRout_tb <= '1'after 10ns,'0'after 25ns;
+					R2in_tb <= '1'after 10ns,'0'after 25ns; -- initialize R2 with the value $22
+				WHEN Reg_load2a =>
+					Mdatain_tb <= x"00000024";
+					Read_tb <= '1'after 10ns,'0'after 25ns;
+					MDRin_tb <= '1'after 10ns,'0'after 25ns;
+				WHEN Reg_load2b =>
+					MDRout_tb <= '1'after 10ns,'0'after 25ns;
+					R4in_tb <= '1'after 10ns,'0'after 25ns; -- initialize R4 with the value $24
+				WHEN Reg_load3a =>
+					Mdatain_tb <= x"00000026";
+					Read_tb <= '1'after 10ns,'0'after 25ns; 
+					MDRin_tb <= '1'after 10ns,'0'after 25ns;
+				WHEN Reg_load3b =>
+					MDRout_tb <= '1'after 10ns,'0'after 25ns; 
+					R5in_tb <= '1'after 10ns,'0'after 25ns; -- initialize R5 with the value $26
+				
+                WHEN T0 => 
+					PCout_tb <= '1'; MARin_tb <= '1';
+					IncPC_tb <= '1'; Zin_tb <= '1';
+				WHEN T1 =>
+					Zlowout_tb <= '1';PCin_tb <= '1';Read_tb <= '1';MDRin_tb <= '1';
+					Mdatain_tb <= x"4A920000"; 
+				WHEN T2 =>
+					MDRout_tb <= '1'; IRin_tb <= '1';
+				WHEN T3 =>
+					R2out_tb <= '1'; Yin_tb <= '1';
+				WHEN T4 =>
+					R4out_tb <= '1'; ADD_tb <= '1'; Zin_tb <= '1';
+				WHEN T5 =>
+					Zlowout_tb <= '1'; R5in_tb <= '1';
+				WHEN OTHERS =>
+			END CASE;
+	END PROCESS;
+END ARCHITECTURE add_tb_arch;

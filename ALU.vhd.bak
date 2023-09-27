@@ -1,0 +1,32 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use ieee.NUMERIC_STD.all;
+
+Entity ALU IS 
+
+port( A : in std_logic_vector(31 downto 0); --inputA
+		B : in std_logic_vector(31 downto 0); --inputB
+		C : out std_logic_vector(31 downto 0); --outputC
+		ctrl_signals: in std_logic_vector(3 downto 0); --select operations
+);
+
+END Entity;
+
+ARCHITECTURE behavior of ALU IS
+
+BEGIN
+process(A,B,C)
+
+begin
+case (ctrl_signals) is
+case(ALU_Sel) is
+  when "0000" => ALU_Result <= A + B ; -- Addition 
+  when "0001" => ALU_Result <= A - B ;-- Subtraction  
+  when "0010" => ALU_Result <= std_logic_vector(to_unsigned((to_integer(unsigned(A)) * to_integer(unsigned(B))),32)) ;-- Multiplication
+  when "0011" => ALU_Result <= std_logic_vector(to_unsigned(to_integer(unsigned(A)) / to_integer(unsigned(B)),32)) ;-- Division
+  when "0100" => ALU_Result <= std_logic_vector(unsigned(A) sll 1);-- Logical shift left
+
+end case
+end process
+END ARCHITECTURE;

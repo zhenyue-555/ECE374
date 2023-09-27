@@ -1,0 +1,50 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity encoder is
+ port(i : in std_logic_vector(31 downto 0);
+  o : out std_logic_vector(4 downto 0) 
+ );  
+end entity;
+
+ARCHITECTURE behavior of encoder is
+BEGIN
+the_encoder : process (i)
+begin
+ case(i) is
+  when x"00000001" => o <= "00000";
+  when x"00000002" => o <= "00001";
+  when x"00000004" => o <= "00010";
+  when x"00000008" => o <= "00011";
+  when x"00000010" => o <= "00100";
+  when x"00000020" => o <= "00101";
+  when x"00000040" => o <= "00110";
+  when x"00000080" => o <= "00111";
+  when x"00000100" => o <= "01000";
+  when x"00000200" => o <= "01001";
+  when x"00000400" => o <= "01010";
+  when x"00000800" => o <= "01011";
+  when x"00001000" => o <= "01100";
+  when x"00002000" => o <= "01101";
+  when x"00004000" => o <= "01110";
+  when x"00008000" => o <= "01111";
+  when x"00010000" => o <= "10000";
+  when x"00020000" => o <= "10001";
+  when x"00040000" => o <= "10010";
+  when x"00080000" => o <= "10011";
+  when x"00100000" => o <= "10100";
+  when x"00200000" => o <= "10101";
+  when x"00400000" => o <= "10110";
+  when x"00800000" => o <= "10111";
+  when x"01000000" => o <= "11000";
+  when x"02000000" => o <= "11001";
+  when x"04000000" => o <= "11010";
+  when x"08000000" => o <= "11011";
+  when x"10000000" => o <= "11100";
+  when x"20000000" => o <= "11101";
+  when x"40000000" => o <= "11110";
+  when x"80000000" => o <= "11111";
+
+ end case;
+ end process;
+ end architecture;

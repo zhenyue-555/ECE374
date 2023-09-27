@@ -1,0 +1,91 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+package ALU_component is 
+
+component NOT_GATE is 
+generic (num : positive);
+port (A: in std_logic_vector(num downto 0);
+		res: out std_logic_vector(num downto 0)
+);
+end component NOT_GATE;
+
+component division is
+generic (num : positive:= 32);
+port (M : in std_logic_vector(num-1 downto 0);
+		Q : in std_logic_vector(num-1 downto 0);
+		clk, reset : in std_logic;
+		start : in std_logic;
+		done : out std_logic;
+		test : out std_logic_vector(num-1 downto 0);
+		r_test : out std_logic_vector(num downto 0);
+		res : out std_logic_vector(num*2-1 downto 0)
+	);
+end component division;
+
+component negate is
+generic (num : positive);
+port(A : in std_logic_vector(num downto 0);
+		res : out std_logic_vector(num downto 0)
+	);
+end component negate;
+
+component add16 is
+port ( A : in std_logic_vector(31 downto 0);
+		 B : in std_logic_vector(31 downto 0);
+		 sel : in std_logic := '0';
+		 cin: in std_logic := '0';
+		 cout : out std_logic;
+		 sum : out std_logic_vector(31 downto 0)
+		 );
+end component add16;
+
+component booth3 is 
+generic (num : positive := 32);
+port (M : in std_logic_vector(num-1 downto 0);
+		Q : in std_logic_vector(num-1 downto 0);
+		clk, reset : in std_logic;
+		start : in std_logic;
+		done : out std_logic;
+		test : out std_logic_vector(2*num downto 0);
+		decode_test : out std_logic_vector(num downto 0);
+		product : out std_logic_vector(num*2-1 downto 0)
+	);
+end component booth3;
+
+component shifter is
+	port(
+		A : in std_logic_vector(31 downto 0);
+		res: out std_logic_vector(31	downto 0);
+		dire : in std_logic;
+		enable : in std_logic;
+	   n : in std_logic_vector(31 downto 0) 
+	);
+end component shifter;
+
+component OR_Gate is
+generic (num : positive := 31);
+port (A: in std_logic_vector(num downto 0);
+		B : in std_logic_vector(num downto 0);
+		res: out std_logic_vector(num downto 0)
+);
+end component OR_Gate;
+
+component AND_Gate is
+generic (num : positive := 31);
+port (A: in std_logic_vector(num downto 0);
+		B : in std_logic_vector(num downto 0);
+		res: out std_logic_vector(num downto 0)
+);
+end component AND_Gate;
+
+component rotate is
+	port(
+		A : in std_logic_vector(31 downto 0);
+		res: out std_logic_vector(31	downto 0);
+		dire : in std_logic;
+		enable : in std_logic;
+	   n : in std_logic_vector(31 downto 0) 
+	);
+end component rotate;
+end package;

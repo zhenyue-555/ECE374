@@ -1,0 +1,37 @@
+LIBRARY ieee;
+USE ieee.std_logic_1164.all; 
+LIBRARY work;
+ENTITY HI IS 
+ PORT
+ (
+  clk :  IN  STD_LOGIC;
+  clr :  IN  STD_LOGIC;
+  HI_in :  IN  STD_LOGIC;
+  BusMuxOut :  IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
+  BusMuxIn_HI :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0)
+ );
+END ENTITY;
+
+ARCHITECTURE bdf_type OF hi IS 
+
+COMPONENT register32
+ PORT(
+        BusMuxOut : IN STD_LOGIC_VECTOR(31 DOWNTO 0); -- input.
+        reg32_in : IN STD_LOGIC; -- load/enable.
+        clr : IN STD_LOGIC; -- async. clear.
+        clk : IN STD_LOGIC; -- clock.
+        BusMuxIn_reg32 : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) -- output.
+ );
+END COMPONENT;
+
+
+BEGIN 
+
+b2v_inst : register32
+PORT MAP(clk => clk,
+   clr => clr,
+   reg32_in => HI_in, 
+   BusMuxOut => BusMuxOut,
+   BusMuxIn_reg32 => BusMuxIn_HI); 
+
+END bdf_type;
