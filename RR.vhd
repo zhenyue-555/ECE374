@@ -1,0 +1,37 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+
+entity RR is 
+ port(
+  data : in std_logic_vector(31 downto 0);
+  output: out std_logic_vector(31 downto 0);
+  enable : in std_logic;
+    d : in std_logic_vector(31 downto 0) 
+ );
+end entity;
+
+architecture behavior of RR is
+signal b : natural;
+signal d_temp : std_logic_vector(3 downto 0);
+begin
+d_temp <= d(3 downto 0);
+b <= to_integer(unsigned(d_temp));
+
+process(b, data, enable)
+begin
+ output <= (others => '0');
+if (enable = '1') then
+ if b = 0 then
+  output <= data;
+ else
+   output(31 downto 31-b+1) <= data(b-1 downto 0); --RR right
+   output(31-b downto 0) <= data(31 downto b);
+  end if;
+
+else 
+ output <= (others => '0');
+end if;
+end process;
+end architecture;

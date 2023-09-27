@@ -12,9 +12,9 @@ ENTITY LO IS
  );
 END ENTITY;
 
-ARCHITECTURE bdf_type OF hi IS 
+ARCHITECTURE bdf_type OF LO IS 
 
-COMPONENT reg32
+COMPONENT register32
  PORT(
         BusMuxOut : IN STD_LOGIC_VECTOR(31 DOWNTO 0); -- input.
         reg32_in : IN STD_LOGIC; -- load/enable.
@@ -27,7 +27,7 @@ END COMPONENT;
 
 BEGIN 
 
-b2v_inst : reg32
+b2v_inst : register32
 PORT MAP(clk => clk,
    clr => clr,
    reg32_in => LO_in, 

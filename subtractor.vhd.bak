@@ -1,0 +1,40 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+
+entity subtractor is
+ port (A_in: in std_logic_vector(31 downto 0);
+		 B_in: in std_logic_vector(31 downto 0);
+		 output: out std_logic_vector(31 downto 0)
+);
+ 
+end entity;
+
+
+architecture behavior of subtractor is
+begin
+
+ process(B_in)
+ variable temp : std_logic_vector(31 downto 0);
+ variable Neg_B : std_logic_vector(31 downto 0);
+ begin
+  for i in 0 to 31 loop
+  
+  if B_in(i) = '1'  then
+   temp(i) := '0';
+  else
+   temp(i) :='1';
+  end if;
+   
+  end loop;
+  Neg_B := std_logic_vector(signed(temp) + 1);
+  output <= std_logic_vector(A_in + Neg_B);
+ end process;
+	
+end architecture behavior;
+
+
+
+
+

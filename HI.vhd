@@ -1,18 +1,20 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all; 
 LIBRARY work;
+
 ENTITY HI IS 
+generic (VAL : std_logic_vector(31 downto 0) := x"00000000");
  PORT
  (
   clk :  IN  STD_LOGIC;
   clr :  IN  STD_LOGIC;
   HI_in :  IN  STD_LOGIC;
   BusMuxOut :  IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
-  BusMuxIn_HI :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0)
+  BusMuxIn_HI :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0) := VAL
  );
 END ENTITY;
 
-ARCHITECTURE bdf_type OF hi IS 
+ARCHITECTURE behave OF hi IS 
 
 COMPONENT register32
  PORT(
@@ -29,9 +31,9 @@ BEGIN
 
 b2v_inst : register32
 PORT MAP(clk => clk,
-   clr => clr,
-   reg32_in => HI_in, 
-   BusMuxOut => BusMuxOut,
-   BusMuxIn_reg32 => BusMuxIn_HI); 
+         clr => clr,
+         reg32_in => HI_in, 
+         BusMuxOut => BusMuxOut,
+         BusMuxIn_reg32 => BusMuxIn_HI); 
 
-END bdf_type;
+END behave;

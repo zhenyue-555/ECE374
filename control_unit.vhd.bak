@@ -1,0 +1,965 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+
+ENTITY control_unit IS
+PORT(
+Clock, Reset, Stop, CONFFout : IN STD_LOGIC;  
+IR : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+
+Write_i : OUT  STD_LOGIC;
+Read : OUT  STD_LOGIC;
+InPortout : OUT  STD_LOGIC;
+
+clr : OUT  STD_LOGIC;
+Run : OUT  STD_LOGIC;
+		
+HIin : OUT  STD_LOGIC;
+LOin : OUT  STD_LOGIC;
+CONin : OUT  STD_LOGIC;
+PCin : OUT  STD_LOGIC;
+IRin :  OUT  STD_LOGIC;
+Yin : OUT  STD_LOGIC;
+Zin : OUT  STD_LOGIC;
+MDRin : OUT  STD_LOGIC;
+MARin : OUT  STD_LOGIC;
+OutPortin : OUT  STD_LOGIC;
+Cout : OUT  STD_LOGIC;
+BAout : OUT  STD_LOGIC;
+
+ADD_i : OUT STD_LOGIC;
+SUB_i : OUT STD_LOGIC;
+MUL_i : OUT STD_LOGIC;
+DIV_i : OUT STD_LOGIC;
+SHR_i : OUT STD_LOGIC;
+SHL_i : OUT STD_LOGIC;
+ROR_i : OUT STD_LOGIC;
+ROL_i : OUT STD_LOGIC;
+AND_i : OUT STD_LOGIC;
+OR_i : OUT STD_LOGIC;
+NEG_i : OUT STD_LOGIC;
+NOT_i : OUT STD_LOGIC;
+
+PCout : OUT  STD_LOGIC;
+MDRout : OUT  STD_LOGIC;
+Zhighout : OUT  STD_LOGIC;
+Zlowout : OUT  STD_LOGIC;
+HIout : OUT  STD_LOGIC;
+LOout : OUT  STD_LOGIC;
+
+Gra : OUT  STD_LOGIC;
+Grb : OUT STD_LOGIC;
+Grc : OUT  STD_LOGIC;
+Rin : OUT  STD_LOGIC;
+Rout : OUT  STD_LOGIC;
+
+	
+IncPC : OUT  STD_LOGIC;
+InPortin : OUT  STD_LOGIC;
+--CONout : OUT  STD_LOGIC;
+
+R14in_enable : OUT STD_LOGIC
+
+--InputUnit : IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
+--BusMuxOut1 : OUT  STD_LOGIC_VECTOR(31 DOWNTO 0);
+--OutputUnit : OUT  STD_LOGIC_VECTOR(31 DOWNTO 0)
+);
+END control_unit;
+
+ARCHITECTURE Behavioral OF control_unit IS
+
+TYPE State IS(
+Reset_stateA, 
+Reset_stateB, 
+fetch0, fetch1, fetch2, fetch3,
+ld3, ld4, ld5, ld6,ld6_1, ld6a, ld7,  ld_withreg_3, ld_withreg_4, ld_withreg_5, ld_withreg_6, ld_withreg_7, ld_withreg_6_1, ld_withreg_6_a,
+ldi3, ldi4, ldi5, ldi_withreg_3, ldi_withreg_4, ldi_withreg_5, st3, st4, st5, st6, st7,st_withreg_3, st_withreg_4, st_withreg_5, st_withreg_6, st_withreg_7, 
+add3, add4, add5, sub3, sub4, sub5, shr3, shr4, shr5, shl3, shl4, shl5, ror3, ror4, ror5, rol3, rol4, rol5,
+and3, and4, and5, or3, or4, or5, addi3, addi4, addi5, andi3, andi4, andi5, ori3, ori4, ori5, 
+mul3, mul4, mul5, mul6, div3, div4, div5, div6, neg3, neg4, not3, not4,
+brzr3, brzr4, brzr5, brzr6, brnz3, brnz4, brnz5, brnz6, brpl3, brpl4, brpl5, brpl6, brmi3, brmi4, brmi5, brmi6, 
+jr3, jal3, jal4, in3, out3, mfhi3, mflo3, nop3, halt3);
+
+SIGNAL Present_state : State := Reset_stateA;
+
+BEGIN
+
+  PROCESS(Clock, Reset, Stop)
+  BEGIN
+     IF(Reset = '1')THEN
+	  Present_state <= Reset_stateA;
+	  ELSIF(Stop = '1')THEN
+	  Present_state <= halt3;
+	  ELSIF(rising_edge(Clock))THEN
+	  
+	     CASE Present_state is
+		     WHEN Reset_stateA =>
+			      Present_state <= Reset_stateB;
+			  WHEN Reset_stateB =>
+			      Present_state <= fetch0;
+		     WHEN fetch0 =>
+			      Present_state <= fetch1;
+		     WHEN fetch1 =>
+			      Present_state <= fetch2;
+		     WHEN fetch2 =>
+			      Present_state <= fetch3;
+			  WHEN fetch3 =>
+			      CASE IR(31 DOWNTO 27) IS
+					
+					     WHEN "00000" => 
+							CASE IR(22 DOWNTO 19) IS
+								WHEN "0000" =>
+									Present_state <= ld3;
+								WHEN OTHERS =>
+								   Present_state <= ld_withreg_3;
+							END CASE;
+
+					     WHEN "00001" => 
+							CASE IR(22 DOWNTO 19) IS
+								WHEN "0000" =>
+									Present_state <= ldi3;
+								WHEN OTHERS =>
+								   Present_state <= ldi_withreg_3;
+							END CASE;
+							
+
+					     WHEN "00010" => 
+							CASE IR(22 DOWNTO 19) IS
+								WHEN "0000" =>
+									Present_state <= st3;
+								WHEN OTHERS =>
+								   Present_state <= st_withreg_3;
+							END CASE;
+							
+
+					     WHEN "00011" => 
+						       Present_state <= add3;
+					     WHEN "00100" => 
+						       Present_state <= sub3;
+					     WHEN "00101" => 
+						       Present_state <= shr3;
+					     WHEN "00110" => 
+						       Present_state <= shl3;
+					     WHEN "00111" => 
+						       Present_state <= ror3;
+					     WHEN "01000" => 
+						       Present_state <= rol3;
+					     WHEN "01001" => 
+						       Present_state <= and3;
+					     WHEN "01010" => 
+						       Present_state <= or3;
+					     WHEN "01011" => 
+						       Present_state <= addi3;
+					     WHEN "01100" => 
+						       Present_state <= andi3;
+					     WHEN "01101" => 
+						       Present_state <= ori3;
+					     WHEN "01110" => 
+						       Present_state <= mul3;
+					     WHEN "01111" => 
+						       Present_state <= div3;
+					     WHEN "10000" => 
+						       Present_state <= neg3;
+					     WHEN "10001" => 
+						       Present_state <= not3;
+					     WHEN "10010" => 
+							CASE IR(20 DOWNTO 19) IS
+								WHEN "00" =>
+									Present_state <= brzr3;
+								WHEN "01" =>
+									Present_state <= brnz3;
+								WHEN "10" =>
+									Present_state <= brpl3;
+								WHEN "11" =>
+									Present_state <= brmi3;
+								WHEN OTHERS =>
+							END CASE;
+
+					     WHEN "10011" => 
+						       Present_state <= jr3;
+					     WHEN "10100" => 
+						       Present_state <= jal3;
+					     WHEN "10101" => 
+						       Present_state <= in3;
+					     WHEN "10110" => 
+						       Present_state <= out3;
+					     WHEN "10111" => 
+						       Present_state <= mfhi3;
+					     WHEN "11000" => 
+						       Present_state <= mflo3;
+					     WHEN "11001" => 
+						       Present_state <= nop3;
+					     WHEN "11010" => 
+						       Present_state <= halt3;
+						  WHEN OTHERS =>
+				END CASE;
+				
+				WHEN ld3 =>
+				     Present_state <= ld4;
+				WHEN ld4 =>
+				     Present_state <= ld5;
+				WHEN ld5 =>
+				     Present_state <= ld6;
+				WHEN ld6 =>
+				     Present_state <= ld6_1;	
+				WHEN ld6_1 =>
+				     Present_state <= ld6a;	
+				WHEN ld6a =>
+				     Present_state <= ld7;						  
+				WHEN ld7 =>
+				     Present_state <= fetch0;		
+
+				WHEN ld_withreg_3 =>
+                 Present_state <= ld_withreg_4;
+            WHEN ld_withreg_4 =>
+                 Present_state <= ld_withreg_5;    
+            WHEN ld_withreg_5 =>
+                 Present_state <= ld_withreg_6;
+            WHEN ld_withreg_6 =>
+					  Present_state <= ld_withreg_6_1;
+				WHEN ld_withreg_6_1 =>
+					  Present_state <= ld_withreg_6_a;
+				WHEN ld_withreg_6_a =>
+                 Present_state <= ld_withreg_7;
+            WHEN ld_withreg_7 =>
+                 Present_state <= fetch0;
+					  
+				WHEN ldi3 =>
+				     Present_state <= ldi4;
+				WHEN ldi4 =>
+				     Present_state <= ldi5;
+				WHEN ldi5 =>
+				     Present_state <= fetch0;
+					  
+				WHEN ldi_withreg_3 =>
+                 Present_state <= ldi_withreg_4;
+            WHEN ldi_withreg_4 =>
+                 Present_state <= ldi_withreg_5;    
+            WHEN ldi_withreg_5 =>
+                 Present_state <= fetch0;
+					  
+				WHEN st3 =>
+				     Present_state <= st4;
+				WHEN st4 =>
+				     Present_state <= st5;
+				WHEN st5 =>
+				     Present_state <= st6;
+				WHEN st6 =>
+				     Present_state <= st7;				
+				WHEN st7 =>
+				     Present_state <= fetch0;						  
+
+		      WHEN st_withreg_3 =>
+                 Present_state <= st_withreg_4;
+   
+            WHEN st_withreg_4 =>
+                 Present_state <= st_withreg_5;    
+     
+            WHEN st_withreg_5 =>
+                 Present_state <= st_withreg_6;
+     
+            WHEN st_withreg_6 =>
+                 Present_state <= st_withreg_7;
+
+            WHEN st_withreg_7 =>
+                 Present_state <= fetch0;			  
+					  
+				WHEN add3 =>
+				     Present_state <= add4;
+				WHEN add4 =>
+					  Present_state <= add5;
+			
+				WHEN add5 =>
+				     Present_state <= fetch0;					  
+				
+				WHEN sub3 =>
+				     Present_state <= sub4;
+				WHEN sub4 =>
+				     Present_state <= sub5;
+				WHEN sub5 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN shr3 =>
+				     Present_state <= shr4;
+				WHEN shr4 =>
+				     Present_state <= shr5;
+				WHEN shr5 =>
+				     Present_state <= fetch0;		      
+
+				WHEN shl3 =>
+				     Present_state <= shl4;
+				WHEN shl4 =>
+				     Present_state <= shl5;
+				WHEN shl5 =>
+				     Present_state <= fetch0;						
+
+				WHEN ror3 =>
+				     Present_state <= ror4;
+				WHEN ror4 =>
+				     Present_state <= ror5;
+				WHEN ror5 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN rol3 =>
+				     Present_state <= rol4;
+				WHEN rol4 =>
+				     Present_state <= rol5;
+				WHEN rol5 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN and3 =>
+				     Present_state <= and4;
+				WHEN and4 =>
+				     Present_state <= and5;
+				WHEN and5 =>
+				     Present_state <= fetch0;	
+
+				WHEN or3 =>
+				     Present_state <= or4;
+				WHEN or4 =>
+				     Present_state <= or5;
+				WHEN or5 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN addi3 =>
+				     Present_state <= addi4;
+				WHEN addi4 =>
+				     Present_state <= addi5;
+				WHEN addi5 =>
+				     Present_state <= fetch0;	
+
+				WHEN andi3 =>
+				     Present_state <= andi4;
+				WHEN andi4 =>
+				     Present_state <= andi5;
+				WHEN andi5 =>
+				     Present_state <= fetch0;					  
+
+				WHEN ori3 =>
+				     Present_state <= ori4;
+				WHEN ori4 =>
+				     Present_state <= ori5;
+				WHEN ori5 =>
+				     Present_state <= fetch0;	
+
+				WHEN mul3 =>
+				     Present_state <= mul4;
+				WHEN mul4 =>
+				     Present_state <= mul5;
+				WHEN mul5 =>
+				     Present_state <= mul6;
+				WHEN mul6 =>
+				     Present_state <= fetch0;		
+
+				WHEN div3 =>
+				     Present_state <= div4;
+				WHEN div4 =>
+				     Present_state <= div5;
+				WHEN div5 =>
+				     Present_state <= div6;
+				WHEN div6 =>
+				     Present_state <= fetch0;		  
+
+				WHEN neg3 =>
+				     Present_state <= neg4;
+				WHEN neg4 =>
+				     Present_state <= fetch0;		
+
+				WHEN not3 =>
+				     Present_state <= not4;
+				WHEN not4 =>
+				     Present_state <= fetch0;		
+
+				WHEN brzr3 =>
+				     Present_state <= brzr4;
+				WHEN brzr4 =>
+				     Present_state <= brzr5;
+				WHEN brzr5 =>
+				     Present_state <= brzr6;
+				WHEN brzr6 =>
+				     Present_state <= fetch0;	
+
+				WHEN brnz3 =>
+				     Present_state <= brnz4;
+				WHEN brnz4 =>
+				     Present_state <= brnz5;
+				WHEN brnz5 =>
+				     Present_state <= brnz6;
+				WHEN brnz6 =>
+				     Present_state <= fetch0;	
+
+				WHEN brpl3 =>
+				     Present_state <= brpl4;
+				WHEN brpl4 =>
+				     Present_state <= brpl5;
+				WHEN brpl5 =>
+				     Present_state <= brpl6;
+				WHEN brpl6 =>
+				     Present_state <= fetch0;	
+
+				WHEN brmi3 =>
+				     Present_state <= brmi4;
+				WHEN brmi4 =>
+				     Present_state <= brmi5;
+				WHEN brmi5 =>
+				     Present_state <= brmi6;
+				WHEN brmi6 =>
+				     Present_state <= fetch0;						  
+
+				WHEN jr3 =>
+				     Present_state <= fetch0;	
+
+				WHEN jal3 =>
+				     Present_state <= jal4;
+				WHEN jal4 =>
+				     Present_state <= fetch0;	
+
+				WHEN in3 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN out3 =>
+				     Present_state <= fetch0;						  
+
+				WHEN mfhi3 =>
+				     Present_state <= fetch0;	
+					  
+				WHEN mflo3 =>
+				     Present_state <= fetch0;						  
+					  
+				WHEN nop3 =>
+				     Present_state <= fetch0;	
+
+				WHEN halt3 =>
+				     Present_state <= fetch0;									 
+								 
+				WHEN OTHERS =>
+				
+      END CASE;				
+	  END IF;
+  END PROCESS;
+  
+  PROCESS(Present_state, CONFFout)
+  BEGIN
+     				Write_i <= '0';
+					--Read <= '0';
+					InPortout <= '0';
+					--Clear <= '1';
+					--Run <= '0';							
+					HIin <= '0';
+					LOin <= '0';
+					CONin <= '0';
+					PCin <= '0';
+					IRin <= '0';
+					Yin <= '0';
+					Zin <= '0';
+					MDRin <= '0';
+					MARin <= '0';
+					OutPortin <= '0';
+					Cout <= '0';
+					BAout <= '0';
+					PCout <= '0';
+					MDRout <= '0';
+					Zhighout <= '0';
+					Zlowout <= '0';
+					HIout <= '0';
+					LOout <= '0';
+					Gra <= '0';
+					Grb <= '0';
+					Grc <= '0';
+					Rin <= '0';
+					Rout <= '0';
+					IncPC <= '0';
+					InPortin <= '0';
+					
+					ADD_i <= '0';
+					SUB_i <= '0';
+					MUL_i <= '0';
+					DIV_i <= '0';
+					SHR_i <= '0';
+					SHL_i <= '0';
+					ROR_i <= '0';
+					ROL_i <= '0';
+					AND_i <= '0';
+					OR_i <= '0';
+					NEG_i <= '0';
+					NOT_i <= '0';
+					
+					R14in_enable <= '0';
+					
+     CASE Present_state IS
+	     WHEN Reset_stateA =>
+					Write_i <= '0';
+					Read <= '0';
+					InPortout <= '0';
+					clr <= '0';
+					Run <= '0';							
+					HIin <= '0';
+					LOin <= '0';
+					CONin <= '0';
+					PCin <= '0';
+					IRin <= '0';
+					Yin <= '0';
+					Zin <= '0';
+					MDRin <= '0';
+					MARin <= '0';
+					OutPortin <= '0';
+					Cout <= '0';
+					BAout <= '0';
+					PCout <= '0';
+					MDRout <= '0';
+					Zhighout <= '0';
+					Zlowout <= '0';
+					HIout <= '0';
+					LOout <= '0';
+					Gra <= '0';
+					Grb <= '0';
+					Grc <= '0';
+					Rin <= '0';
+					Rout <= '0';
+					IncPC <= '0';
+					InPortin <= '0';
+					
+					ADD_i <= '0';
+					SUB_i <= '0';
+					MUL_i <= '0';
+					DIV_i <= '0';
+					SHR_i <= '0';
+					SHL_i <= '0';
+					ROR_i <= '0';
+					ROL_i <= '0';
+					AND_i <= '0';
+					OR_i <= '0';
+					NEG_i <= '0';
+					NOT_i <= '0';
+					
+					R14in_enable <= '0';
+					
+			WHEN Reset_stateB =>	  
+					clr <= '1';
+					Run <= '1';	
+					
+			WHEN fetch0 =>
+			      PCout <= '1'; MARin <= '1'; Read <= '1'; clr <= '1';
+			
+			WHEN fetch1 =>
+			      PCout <= '0'; MARin <= '0'; 
+			      IncPC <= '1'; PCin <= '1'; MDRin <= '1';  Read <= '1';
+					
+			WHEN fetch2 =>
+			      IncPC <= '0'; PCin <= '0'; MDRin <= '0'; Read <= '0'; 
+			      MDRout <= '1'; IRin <= '1';
+					
+			WHEN fetch3 =>
+
+		
+		
+			WHEN ld3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; BAout <= '1'; Yin <= '1';
+			
+			WHEN ld4 =>
+			      Grb <= '0'; Yin <= '0'; BAout <= '0'; 
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN ld5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; MARin <= '1';
+			
+			WHEN ld6 =>
+			      Zlowout <= '0'; MARin <= '0';
+					Read <= '1'; --MDRin <= '1';
+					
+			WHEN ld6_1 =>	
+			
+			WHEN ld6a =>	
+			      Read <= '1'; MDRin <= '1';
+			WHEN ld7 =>
+					--Read <= '0'; MDRin <= '0';
+					MDRout <= '1'; Gra <= '1'; Rin <= '1';
+	
+			WHEN ld_withreg_3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN ld_withreg_4 =>
+			      Grb <= '0'; Rout <= '0'; Yin <= '0';
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN ld_withreg_5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; MARin <= '1';
+			
+			WHEN ld_withreg_6 =>
+			      Zlowout <= '0'; MARin <= '0';
+					Read <= '1'; --MDRin <= '1';
+			WHEN ld_withreg_6_1 =>	
+			
+			WHEN ld_withreg_6_a =>	
+			      Read <= '1'; MDRin <= '1';
+					
+			WHEN ld_withreg_7 =>
+					--Read <= '0'; MDRin <= '0';
+					MDRout <= '1'; Gra <= '1'; Rin <= '1';
+	
+			WHEN ldi3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; BAout <= '1'; Yin <= '1';  
+			
+			WHEN ldi4 =>
+			      Grb <= '0'; 
+					Yin <= '0'; BAout <= '0';  
+			      Cout <= '1'; ADDin <= '1'; Zin <= '1';	 		
+					
+			WHEN ldi5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1';  
+		
+			WHEN ldi_withreg_3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN ldi_withreg_4 =>
+			      Grb <= '0'; Rout <= '0'; Yin <= '0';
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN ldi_withreg_5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1';
+	
+			WHEN st3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; BAout <= '1'; Yin <= '1';		
+			
+			WHEN st4 =>
+			      Grb <= '0';  Yin <= '0'; BAout <= '0'; 
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN st5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; MARin <= '1';
+					
+			WHEN st6 =>
+			      Zlowout <= '0'; MARin <= '0';
+					MDRin <= '1'; Gra <= '1'; Rout <= '1';
+
+			WHEN st7 =>
+			      MDRin <= '0'; Gra <= '0'; Rout <= '0';
+			      MDRout <= '1'; Write_i <= '1';
+		
+			WHEN st_withreg_3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN st_withreg_4 =>
+			      Grb <= '0'; Rout <= '0'; Yin <= '0';
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN st_withreg_5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; MARin <= '1';
+					
+			WHEN st_withreg_6 =>
+			      Zlowout <= '0'; MARin <= '0';
+					MDRin <= '1'; Gra <= '1'; Rout <= '1';
+
+			WHEN st_withreg_7 =>
+			      MDRin <= '0'; Gra <= '0'; Rout <= '0';
+			      MDRout <= '1'; Write_i <= '1';
+		
+			WHEN add3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN add4 =>
+			      Grb <= '0'; Yin <= '0';
+			      Grc <= '1'; ADD_i <= '1'; Zin <= '1'; Rout <= '1';	
+					
+					
+			WHEN add5 =>
+			      Grc <= '0'; Rout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+		      
+			WHEN sub3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN sub4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';	
+			      Grc <= '1'; SUB_i <= '1'; Zin <= '1';					
+					
+			WHEN sub5 =>
+			      Grc <= '0'; Rout <= '0'; SUB_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+	
+			WHEN shr3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN shr4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; SHR_i <= '1'; Zin <= '1';					
+					
+			WHEN shr5 =>
+			      Grc <= '0'; Rout <= '0'; SHR_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 	      
+
+			WHEN shl3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN shl4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; SHL_i <= '1'; Zin <= '1';					
+					
+			WHEN shl5 =>
+			      Grc <= '0'; Rout <= '0'; SHL_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 		    
+
+			WHEN ror3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN ror4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; ROR_i <= '1'; Zin <= '1';					
+					
+			WHEN ror5 =>
+			      Grc <= '0'; Rout <= '0'; ROR_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 	
+
+			WHEN rol3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN rol4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; ROL_i <= '1'; Zin <= '1';					
+					
+			WHEN rol5 =>
+			      Grc <= '0'; Rout <= '0'; ROL_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1';
+
+			WHEN and3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN and4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; AND_i <= '1'; Zin <= '1';					
+					
+			WHEN and5 =>
+			      Grc <= '0'; Rout <= '0'; AND_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+
+			WHEN or3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN or4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1';
+			      Grc <= '1'; OR_i <= '1'; Zin <= '1';					
+					
+			WHEN or5 =>
+			      Grc <= '0'; Rout <= '0'; OR_i= <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+
+			WHEN addi3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN addi4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '0';
+			      Cout <= '1'; ADD_i <= '1'; Zin <= '1';					
+					
+			WHEN addi5 =>
+			      Cout <= '0'; ADD_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+
+			WHEN andi3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN andi4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '0';
+			      Cout <= '1'; AND_i <= '1'; Zin <= '1';					
+					
+			WHEN andi5 =>
+			      Cout <= '0'; AND_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+
+			WHEN ori3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN ori4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '0';
+			      Cout <= '1'; OR_i <= '1'; Zin <= '1';					
+					
+			WHEN ori5 =>
+			      Cout <= '0'; OR_i <= '0'; Zin <= '0';	
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1'; 
+
+			WHEN mul3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN mul4 =>
+			      Grb <= '0'; Yin <= '0'; Rout <= '1'; 
+			      Gra <= '1'; MUL_i <= '1'; Zin <= '1';					
+					
+			WHEN mul5 =>
+			      Gra <= '0'; MUL_i <= '0'; Zin <= '0';	Rout <= '0'; 
+			      Zlowout <= '1'; LOin <= '1'; 
+			
+			WHEN mul6 =>
+			      Zlowout <= '0'; LOin <= '0'; 
+			      Zhighout <= '1'; HIin <= '1'; 
+
+			WHEN div3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; Yin <= '1';
+			
+			WHEN div4 =>
+			      Gra <= '0'; Yin <= '0'; Rout <= '1'; 
+			      Grb <= '1'; DIV_i <= '1'; Zin <= '1';					
+					
+			WHEN div5 =>
+			      Grb <= '0'; DIV_i <= '0'; Zin <= '0';	Rout <= '0'; 
+			      Zlowout <= '1'; LOin <= '1'; 
+			
+			WHEN div6 =>
+			      Zlowout <= '0'; LOin <= '0'; 
+			      Zhighout <= '1'; HIin <= '1'; 
+
+			WHEN neg3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; NEG_i <= '1'; Zin <= '1';
+			
+			WHEN neg4 =>
+			      Grb <= '0'; Rout <= '0'; NEG_i <= '0'; Zin <= '0';
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1';	
+
+			WHEN not3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Grb <= '1'; Rout <= '1'; NOT_i <= '1'; Zin <= '1';
+			
+			WHEN not4 =>
+			      Grb <= '0'; Rout <= '0'; NOT_i <= '0'; Zin <= '0';
+			      Zlowout <= '1'; Gra <= '1'; Rin <= '1';	
+
+			WHEN brzr3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; CONin <= '1';
+			
+			WHEN brzr4 =>
+			      Gra <= '0'; Rout <= '0'; CONin <= '0';
+			      PCout <= '1'; Yin <= '1';	
+			
+			WHEN brzr5 =>
+			      PCout <= '0'; Yin <= '0';	
+		         Cout <= '1'; ADD_i <= '1'; Zin <= '1';
+			
+			WHEN brzr6 =>
+		         Cout <= '0'; ADD_i <= '0'; Zin <= '0';
+					Zlowout <= '1';
+					IF(CON_FF = '1')THEN 
+					   PCin <= '1';
+					END IF;
+
+			WHEN brnz3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; CONin <= '1';
+			
+			WHEN brnz4 =>
+			      Gra <= '0'; Rout <= '0'; CONin <= '0';
+			      PCout <= '1'; Yin <= '1';	
+			
+			WHEN brnz5 =>
+			      PCout <= '0'; Yin <= '0';	
+		         Cout <= '1'; ADD_i <= '1'; Zin <= '1';
+			
+			WHEN brnz6 =>
+		         Cout <= '0'; ADD_i <= '0'; Zin <= '0';
+					Zlowout <= '1';
+					IF(CON_FF = '1')THEN 
+					   PCin <= '1';
+					END IF;
+
+			WHEN brpl3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; CONin <= '1';
+			
+			WHEN brpl4 =>
+			      Gra <= '0'; Rout <= '0'; CONin <= '0';
+			      PCout <= '1'; Yin <= '1';	
+			
+			WHEN brpl5 =>
+			      PCout <= '0'; Yin <= '0';	
+		         Cout <= '1'; ADD_i <= '1'; Zin <= '1';
+			
+			WHEN brpl6 =>
+		         Cout <= '0'; ADD_i <= '0'; Zin <= '0';
+					Zlowout <= '1';
+					IF(CON_FF = '1')THEN 
+					   PCin <= '1';
+					END IF;
+
+			WHEN brmi3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; CONin <= '1';
+			
+			WHEN brmi4 =>
+			      Gra <= '0'; Rout <= '0'; CONin <= '0';
+			      PCout <= '1'; Yin <= '1';	
+			
+			WHEN brmi5 =>
+			      PCout <= '0'; Yin <= '0';	
+		         Cout <= '1'; ADD_i <= '1'; Zin <= '1';
+			
+			WHEN brmi6 =>
+		         Cout <= '0'; ADD_i <= '0'; Zin <= '0';
+					Zlowout <= '1';
+					IF(CON_FF = '1')THEN 
+					   PCin <= '1';
+					END IF;
+
+			WHEN jr3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; PCin <= '1';
+
+			WHEN jal3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      PCout <= '1'; R14in_enable <= '1'; 
+			
+			WHEN jal4 =>
+			      PCout <= '0'; R14in_enable <= '0';
+			      Gra <= '1'; Rout <= '1'; PCin <= '1';
+
+			WHEN in3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rin <= '1'; InPortout <= '1'; 
+
+			WHEN out3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rout <= '1'; OutPortin <= '1'; 
+
+			WHEN mfhi3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rin <= '1'; HIout <= '1'; 
+
+			WHEN mflo3 =>
+			      MDRout <= '0'; IRin <= '0';
+			      Gra <= '1'; Rin <= '1'; LOout <= '1'; 
+
+			WHEN nop3 =>
+
+			WHEN halt3 =>
+			      Run <= '0';
+			WHEN OTHERS =>
+		END CASE;
+	END PROCESS;
+END Behavioral;
+
+
+
+
+					

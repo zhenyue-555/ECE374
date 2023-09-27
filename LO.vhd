@@ -1,14 +1,17 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all; 
 LIBRARY work;
+
+
 ENTITY LO IS 
+generic (VAL : std_logic_vector(31 downto 0) := x"00000000");
  PORT
  (
   clk :  IN  STD_LOGIC;
   clr :  IN  STD_LOGIC;
   LO_in :  IN  STD_LOGIC;
   BusMuxOut :  IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
-  BusMuxIn_LO :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0)
+  BusMuxIn_LO :  OUT  STD_LOGIC_VECTOR(31 DOWNTO 0) := VAL
  );
 END ENTITY;
 
@@ -29,9 +32,9 @@ BEGIN
 
 b2v_inst : register32
 PORT MAP(clk => clk,
-   clr => clr,
-   reg32_in => LO_in, 
-   BusMuxOut => BusMuxOut,
-   BusMuxIn_reg32 => BusMuxIn_LO); 
+         clr => clr,
+         reg32_in => LO_in, 
+         BusMuxOut => BusMuxOut,
+         BusMuxIn_reg32 => BusMuxIn_LO); 
 
 END bdf_type;

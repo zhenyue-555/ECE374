@@ -1,0 +1,27 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+
+ENTITY MDR_mux IS
+
+PORT(
+	r: IN STD_LOGIC;
+	dataout: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+	BusMuxOut: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+	Mdatain: IN STD_LOGIC_VECTOR(31 DOWNTO 0)
+);
+
+END ENTITY MDR_mux;
+
+ARCHITECTURE behavioral OF MDR_mux IS 
+
+BEGIN
+
+ process(r)
+ begin
+	IF (r = '0') THEN 
+		dataout <= BusMuxOut;
+	ELSE
+		dataout <= Mdatain;
+	END IF;
+	end process;
+END ARCHITECTURE;

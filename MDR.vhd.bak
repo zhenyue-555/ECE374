@@ -1,33 +1,64 @@
 LIBRARY ieee;
+library work;
 USE ieee.std_logic_1164.ALL;
 
 ENTITY MDR IS
 PORT(
- busMuxOut: IN std_logic_vector(31 downto 0);
+    busMuxOut: IN std_logic_vector(31 downto 0);
     Mdatain:    IN std_logic_vector(31 downto 0);
- clr:        IN std_logic;
+    clr:        IN std_logic;
     clk:        IN std_logic;
     MDRin:      IN std_logic;
-    read:     IN std_logic;
- MDRoutput: OUT std_logic_vector(31 downto 0)
+    Read_s:     IN std_logic;
+    BusMuxIn_MDR: OUT std_logic_vector(31 downto 0)
+    --MemIn_MDR: OUT std_logic_vector(31 downto 0)
 );
 END MDR;
 
-ARCHITECTURE behaviour OF MDR IS 
- BEGIN
- PROCESS(clr, clk, busMuxOut, MDatain, read, MDRin)
- BEGIN
- IF clr ='0' then
-  //MDRoutput <= x"00000000";
-        MDRoutput <= (others =>'0');
- ELSIF rising_edge(clk) then
-   IF MDRin = '1' then
-    IF (read = '0') THEN
-     MDRoutput <= busMuxOut;
-    ELSE (read = '1') THEN
-     MDRoutput <= MdataIn;
-    END IF;
-   END IF;
- END IF;
- END PROCESS;
-END;
+ARCHITECTURE behavioral OF MDR IS
+
+COMPONENT MDR_mux IS
+PORT(
+	r: IN STD_LOGIC;
+	dataout: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+	BusMuxOut: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+	Mdatain: IN STD_LOGIC_VECTOR(31 DOWNTO 0)
+);
+END COMPONENT;
+
+COMPONENT register32
+PORT(
+	BusMuxOut : IN STD_LOGIC_VECTOR(31 DOWNTO 0); -- input.
+	reg32_in : IN STD_LOGIC; -- load/enable.
+	clr : IN STD_LOGIC; -- async. clear.
+	clk : IN STD_LOGIC; -- clock.
+	BusMuxIn_reg32 : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) -- output.
+);
+END COMPONENT;
+
+SIGNAL s1: STD_LOGIC_VECTOR(31 DOWNTO 0);
+--SIGNAL s2: STD_LOGIC_VECTOR(31 DOWNTO 0);
+
+BEGIN
+
+
+
+read_select: MDR_mux
+PORT MAP(
+	r => Read_s,
+	dataout => s1,
+	BusMuxOut => busMuxOut,
+	Mdatain => Mdatain
+);
+
+
+mdr_reg: register32
+PORT MAP(
+	BusMuxOut => s1,
+	reg32_in => MDRin,
+	clr => clr,
+	clk => clk,
+	BusMuxIn_reg32 =>BusMuxIn_MDR
+);
+
+END behavioral;

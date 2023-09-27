@@ -1,0 +1,42 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+
+entity rotate is 
+ port(
+  A : in std_logic_vector(31 downto 0);
+  res: out std_logic_vector(31 downto 0);
+  dire : in std_logic;
+  enable : in std_logic;
+    n : in std_logic_vector(31 downto 0) 
+ );
+end entity;
+
+architecture behavior of rotate is
+signal bits : natural;
+signal n_temp : std_logic_vector(3 downto 0);
+begin
+n_temp <= n(3 downto 0);
+bits <= to_integer(unsigned(n_temp));
+
+process(A, bits, dire, enable)
+begin
+ res <= (others => '0');
+if (enable = '1') then
+ if bits = 0 then
+  res <= A;
+ else
+  if(dire = '0') then -- rotate left
+   res(31 downto bits) <= A(31 - bits downto 0);
+   res(bits - 1 downto 0) <=A(31 downto 31+1-bits);
+  else
+   res(31 downto 31-bits+1) <= A(bits-1 downto 0); 
+   res(31-bits downto 0) <= A(31 downto bits);
+  end if;
+ end if;
+else 
+ res <= (others => '0');
+end if;
+end process;
+end architecture;

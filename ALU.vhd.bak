@@ -1,32 +1,247 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-use ieee.NUMERIC_STD.all;
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-Entity ALU IS 
+ENTITY ALU is 
+	PORT(
+		A,B : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		ALU_sel: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+		C_HI: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+		C_LO: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+	);
+END ENTITY;
 
-port( A : in std_logic_vector(31 downto 0); --inputA
-		B : in std_logic_vector(31 downto 0); --inputB
-		C : out std_logic_vector(31 downto 0); --outputC
-		ctrl_signals: in std_logic_vector(3 downto 0); --select operations
+ARCHITECTURE behavioral OF ALU IS
+	
+COMPONENT adder
+	PORT (
+--		 A_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--		 B_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--
+--		 C_in: IN STD_LOGIC;
+--		 sum: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+--		 C_out: OUT STD_LOGIC
+		 
+		A : in std_logic_vector (31 downto 0);
+		B : in std_logic_vector (31 downto 0);
+		Cin : in std_logic;
+		S : out std_logic_vector (31 downto 0);
+		Cout : out std_logic
+	);
+END COMPONENT adder;
+
+COMPONENT subtractor 
+	PORT(
+		   A_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    		B_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    		
+    		C_in: IN STD_LOGIC;
+    		result: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+			C_out: OUT STD_LOGIC
+	);
+end component subtractor;
+
+COMPONENT negate
+	PORT (
+		input: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+	  	output: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+	);
+END COMPONENT negate;
+
+
+COMPONENT MUL
+	port (
+		      m : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      		q : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      		p : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)  
+	);
+END COMPONENT MUL;
+
+COMPONENT division
+	PORT(
+		 Ain: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+   	 Bin: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    	 Q:  OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+    	 remainder: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+	);
+END COMPONENT division;
+
+
+
+COMPONENT shifter
+	PORT(
+		shift_in :IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		n: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+		sel: IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+		shift_out: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+		roll_out:OUT STD_LOGIC
+
+	);
+END COMPONENT shifter;
+
+COMPONENT AND_GATE is
+	PORT (
+		A: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		B : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		output: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
 );
+END COMPONENT AND_GATE;
 
-END Entity;
+COMPONENT NOT_GATE is 
+	PORT (
+		input: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		output: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+);
+END COMPONENT NOT_GATE;
 
-ARCHITECTURE behavior of ALU IS
+COMPONENT OR_GATE is
+port (
+		A: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		B : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		output: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+);
+END COMPONENT OR_GATE;
+
+SIGNAL NEGout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL ADDout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL SUBout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL MULout : STD_LOGIC_VECTOR(63 DOWNTO 0) := (others => '0');
+SIGNAL DIVout_remainder : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL DIVout_quotient : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL SHRout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL SHLout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL RORout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL ROLout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL ANDout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL ORout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+SIGNAL NOTout : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
+
 
 BEGIN
-process(A,B,C)
 
-begin
-case (ctrl_signals) is
-case(ALU_Sel) is
-  when "0000" => ALU_Result <= A + B ; -- Addition 
-  when "0001" => ALU_Result <= A - B ;-- Subtraction  
-  when "0010" => ALU_Result <= std_logic_vector(to_unsigned((to_integer(unsigned(A)) * to_integer(unsigned(B))),32)) ;-- Multiplication
-  when "0011" => ALU_Result <= std_logic_vector(to_unsigned(to_integer(unsigned(A)) / to_integer(unsigned(B)),32)) ;-- Division
-  when "0100" => ALU_Result <= std_logic_vector(unsigned(A) sll 1);-- Logical shift left
+ALU_add : adder port map(
+		 A,	
+		 B,
+		'0',	
+		ADDout		
+	);
 
-end case
-end process
-END ARCHITECTURE;
+ALU_negate : negate port map(
+		B,
+		NEGout
+	);
+
+ALU_sub : subtractor port map(
+		 A,
+		 B,
+		'0',
+		SUBout
+	);
+
+shift_logical_right : shifter port map(
+		 A,		
+		 B(4 DOWNTO 0),
+		"01",
+		SHRout		
+);
+
+
+shift_logical_left : shifter port map(
+		 A,		
+		 B(4 DOWNTO 0),
+		"00",
+		SHLout		
+);
+
+
+rotateR : shifter port map(
+		A,
+		B(4 DOWNTO 0),
+		"11",
+		RORout
+);
+
+rotateL : shifter port map(
+		A,
+		B(4 DOWNTO 0),
+		"10",
+		ROLout
+);
+
+ALU_signed_division : division port map(
+
+		A,
+		B,
+		DIVout_quotient,
+		DIVout_remainder
+);
+
+ALU_multiply : MUL port map(
+		A,
+		B,
+		MULout
+);
+
+
+ALU_not : NOT_GATE port map(
+		B,
+		NOTout
+);
+
+ALU_and : AND_GATE port map(
+		A,
+		B,
+		ANDout
+);
+
+ALU_or: OR_GATE port map(
+		A,
+		B,
+		ORout
+);
+
+	PROCESS(NEGout, ADDout, SUBout, SHRout, SHLout, ROLout, RORout, DIVout_quotient, DIVout_remainder, MULout, ANDout, ORout, NOTout )
+
+		BEGIN 
+			IF(ALU_sel = "0000") THEN --AND
+				C_LO <= ANDout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0001") THEN --OR
+				C_LO <= ORout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0010") THEN --NOT
+				C_LO <= NOTout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0011") THEN --NEG
+				C_LO <= NEGout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0100") THEN --ADD
+				C_LO <= ADDout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0101") THEN --SUB
+				C_LO <= SUBout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "0110") THEN --MUL
+				C_LO <= MULout(31 DOWNTO 0);
+				C_HI <= MULout(63 DOWNTO 32);
+			ELSIF(ALU_sel = "0111") THEN --DIV
+				C_LO <= DIVout_quotient;
+				C_HI <= DIVout_remainder;
+			ELSIF(ALU_sel = "1000") THEN --SHR
+				C_LO <= SHRout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "1001") THEN --SHL
+				C_LO <= SHLout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "1010") THEN --ROR
+				C_LO <= RORout;
+				C_HI <= X"00000000";
+			ELSIF(ALU_sel = "1011") THEN --ROL
+				C_LO <= ROLout;
+				C_HI <= X"00000000";
+			ELSE
+				C_LO <= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+				C_HI <= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+			END IF;
+			end process;
+end behavioral;
